@@ -1,6 +1,6 @@
 # Person Management System
 
-A production-ready full-stack CRUD application built with .NET 10 and React 19, featuring advanced search, pagination, cloud image upload, and comprehensive error handling.
+A production-ready full-stack CRUD application built with .NET 8 and React 19, featuring advanced search, pagination, cloud image upload, and comprehensive error handling.
 
 ## Features
 
@@ -14,8 +14,8 @@ A production-ready full-stack CRUD application built with .NET 10 and React 19, 
 ## Tech Stack
 
 ### Backend
-- **.NET 10** - Web API
-- **Entity Framework Core 10** - ORM with Code-First approach
+- **.NET 8** - Web API
+- **Entity Framework Core 8** - ORM with Code-First approach
 - **PostgreSQL** - Production database (Neon)
 - **SQLite** - Local development fallback
 - **Serilog** - Structured logging (Console + File)
@@ -35,7 +35,7 @@ A production-ready full-stack CRUD application built with .NET 10 and React 19, 
 
 ### Prerequisites
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 - [Node.js 18+](https://nodejs.org/)
 - PostgreSQL database (or use [Neon](https://neon.tech/) for free)
 - [Cloudinary account](https://cloudinary.com/) (free tier available)
