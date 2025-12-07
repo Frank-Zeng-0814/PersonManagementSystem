@@ -1,0 +1,21 @@
+# Environment variables
+appsettings.Development.json
+client/.env
+
+# Backend
+Backend/Backend/bin/
+Backend/Backend/obj/
+Backend/Backend/logs/
+Backend/Backend/*.db
+Backend/Backend/*.db-shm
+Backend/Backend/*.db-wal
+
+# Frontend
+client/node_modules/
+client/dist/
+
+# IDE & OS
+.DS_Store
+
+# Logs
+*.log
