@@ -13,20 +13,19 @@ function Person() {
     const [editData, setEditData] = useState(null);
 
     useEffect(() => {
-        try {
-            const loadPeople = async () => {
+        const loadPeople = async () => {
+            try {
+                setLoading(true);
                 var response = (await axios.get(BASE_URL)).data;
                 setPeople(response.data || []);
+            } catch (error) {
+                console.log(error);
+                toast.error("Error has occured!");
+            } finally {
+                setLoading(false);
             }
-            loadPeople();
-        } catch (error) {
-            console.log(error);
-            toast.error("Error has occured!");
         }
-        finally {
-            setLoading(false);
-        }
-
+        loadPeople();
     }, []);
 
     useEffect(() => {
@@ -106,11 +105,18 @@ function Person() {
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                         Person Management
                     </h1>
-                    {loading && <p>Loading...</p>}
                 </div>
 
                 <PersonForm methods={methods} onFormSubmit={handleFormSubmit} onFormReset={handleFormReset} />
-                <PersonList peopleList={people} onPersonEdit={handlePersonEdit} onPersonDelete={handlePersonDelete} onAvatarUpdate={handleAvatarUpdate} />
+
+                {loading ? (
+                    <div className="flex justify-center items-center py-12">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                        <p className="ml-3 text-gray-600">Loading people...</p>
+                    </div>
+                ) : (
+                    <PersonList peopleList={people} onPersonEdit={handlePersonEdit} onPersonDelete={handlePersonDelete} onAvatarUpdate={handleAvatarUpdate} />
+                )}
             </div>
         </div>
     )
