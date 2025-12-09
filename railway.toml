@@ -1,8 +1,7 @@
 [build]
-builder = "NIXPACKS"
-buildCommand = "cd Backend/Backend && dotnet publish -c Release -o out"
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "cd Backend/Backend/out && dotnet Backend.dll"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
