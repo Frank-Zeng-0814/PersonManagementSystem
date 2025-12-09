@@ -16,8 +16,7 @@ A production-ready full-stack CRUD application built with .NET 8 and React 19, f
 ### Backend
 - **.NET 8** - Web API
 - **Entity Framework Core 8** - ORM with Code-First approach
-- **PostgreSQL** - Production database (Neon)
-- **SQLite** - Local development fallback
+- **PostgreSQL (Neon)** - Database for development and production
 - **Serilog** - Structured logging (Console + File)
 - **Cloudinary** - Cloud image storage
 - **Swagger** - API documentation
@@ -47,19 +46,13 @@ A production-ready full-stack CRUD application built with .NET 8 and React 19, f
 cd Backend/Backend
 ```
 
-2. Create `appsettings.Development.json` (not tracked in git):
-```json
-{
-  "AllowedOrigins": "http://localhost:5173",
-  "ConnectionStrings": {
-    "PostgreSQL": "Host=your-host;Database=your-db;Username=your-user;Password=your-password;SSL Mode=Require"
-  },
-  "Cloudinary": {
-    "CloudName": "your-cloud-name",
-    "ApiKey": "your-api-key",
-    "ApiSecret": "your-api-secret"
-  }
-}
+2. Configure User Secrets (secure local configuration):
+```bash
+dotnet user-secrets set "ConnectionStrings:PostgreSQL" "Host=your-host;Database=your-db;Username=your-user;Password=your-password;SSL Mode=Require"
+dotnet user-secrets set "Cloudinary:CloudName" "your-cloud-name"
+dotnet user-secrets set "Cloudinary:ApiKey" "your-api-key"
+dotnet user-secrets set "Cloudinary:ApiSecret" "your-api-secret"
+dotnet user-secrets set "AllowedOrigins" "http://localhost:5173"
 ```
 
 3. Run the backend:
@@ -68,6 +61,8 @@ dotnet run
 ```
 
 The API will start at `http://localhost:3000` and automatically apply database migrations.
+
+**Note:** User Secrets are stored in `~/.microsoft/usersecrets/` and never committed to Git.
 
 ### Frontend Setup
 
@@ -150,7 +145,7 @@ DotnetReactCrud/
 
 - **Clean Architecture** - Separation of concerns with DTOs, Services, and Controllers
 - **Auto Migrations** - Database schema updates on application startup
-- **Dual Database Support** - PostgreSQL for production, SQLite for local development
+- **User Secrets** - Secure local development configuration (never committed to Git)
 - **CORS Configuration** - Environment-based origin allowlist
 - **Global Exception Handling** - Centralized error handling middleware
 - **Structured Logging** - Request/response logging with Serilog

@@ -22,6 +22,7 @@ const PersonForm = ({ methods, onFormReset, onFormSubmit }) => {
                             First Name*
                         </label>
                         <input
+                            id="firstName"
                             type="text" {...register("firstName", {
                                 required: true,
                                 maxLength: 30
@@ -44,6 +45,7 @@ const PersonForm = ({ methods, onFormReset, onFormSubmit }) => {
                             Last Name*
                         </label>
                         <input
+                            id="lastName"
                             type="text"
                             {...register("lastName", {
                                 required: true,

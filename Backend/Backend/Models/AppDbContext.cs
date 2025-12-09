@@ -14,13 +14,8 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Use different SQL for SQLite vs PostgreSQL
-        var defaultSql = Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite"
-            ? "datetime('now')"
-            : "CURRENT_TIMESTAMP";
-
         modelBuilder.Entity<Person>()
             .Property(p => p.CreatedAt)
-            .HasDefaultValueSql(defaultSql);
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
     }
 }

@@ -34,25 +34,36 @@ builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Use PostgreSQL if connection string exists, otherwise use SQLite
-var postgresConnection = builder.Configuration.GetConnectionString("PostgreSQL");
-if (!string.IsNullOrEmpty(postgresConnection))
-{
-    builder.Services.AddDbContext<AppDbContext>(op => op.UseNpgsql(postgresConnection));
-}
-else
-{
-    string sqliteConnection = builder.Configuration.GetConnectionString("Default") ?? throw new ArgumentNullException("connectionString is null");
-    builder.Services.AddDbContext<AppDbContext>(op => op.UseSqlite(sqliteConnection));
-}
+var postgresConnection = builder.Configuration.GetConnectionString("PostgreSQL")
+    ?? throw new InvalidOperationException("PostgreSQL connection string is required.");
+builder.Services.AddDbContext<AppDbContext>(op => op.UseNpgsql(postgresConnection));
 
 var app = builder.Build();
 
-// Auto migrate database on startup
+// Auto-apply pending migrations
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
+    try
+    {
+        var pendingMigrations = db.Database.GetPendingMigrations();
+        if (pendingMigrations.Any())
+        {
+            Log.Information("Applying {Count} pending migrations: {Migrations}",
+                pendingMigrations.Count(), string.Join(", ", pendingMigrations));
+            db.Database.Migrate();
+            Log.Information("Database migration completed successfully");
+        }
+        else
+        {
+            Log.Information("No pending migrations - database is up to date");
+        }
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "Database migration failed");
+        throw;
+    }
 }
 
 app.UseSwagger();

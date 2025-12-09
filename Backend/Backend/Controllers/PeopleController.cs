@@ -19,18 +19,18 @@ public class PeopleController : ControllerBase
         _cloudinaryService = cloudinaryService;
     }
 
-    [HttpPost]  // POST /api/people
+    [HttpPost]
     public async Task<IActionResult> AddPerson(Person person)
     {
         try
         {
             _context.People.Add(person);
             await _context.SaveChangesAsync();
-            return CreatedAtRoute("GetPerson", new { id = person.Id }, person); // 201 Created status code + location of the resource (http://localhost:3000/api/people/{id}) + person object in the response body
+            return CreatedAtRoute("GetPerson", new { id = person.Id }, person);
         }
         catch (Exception ex)
         {
-            return StatusCode(StatusCodes.Status500InternalServerError, ex.Message); // 500 internal server error + message in the response body
+            return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
         }
     }
 
@@ -41,7 +41,6 @@ public class PeopleController : ControllerBase
         {
             var query = _context.People.AsQueryable();
 
-            // Search
             if (!string.IsNullOrWhiteSpace(parameters.SearchTerm))
             {
                 var searchLower = parameters.SearchTerm.ToLower();
@@ -50,7 +49,6 @@ public class PeopleController : ControllerBase
                     p.LastName.ToLower().Contains(searchLower));
             }
 
-            // Sort
             query = parameters.SortBy?.ToLower() switch
             {
                 "lastname" => parameters.SortOrder?.ToLower() == "desc"
@@ -89,46 +87,44 @@ public class PeopleController : ControllerBase
         }
     }
 
-    [HttpGet("{id:int}", Name = "GetPerson")]  // GET /api/people/1
+    [HttpGet("{id:int}", Name = "GetPerson")]
     public async Task<IActionResult> GetPerson(int id)
     {
         try
         {
             var person = await _context.People.FindAsync(id);
-
             if (person is null)
             {
-                return NotFound(); // 404 not found status code
+                return NotFound();
             }
-
-            return Ok(person); // 200 Ok status code + person object in the response body
+            return Ok(person);
         }
         catch (Exception ex)
         {
-            return StatusCode(StatusCodes.Status500InternalServerError, ex.Message); // 500 internal server error + message in the response body
+            return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
         }
     }
 
-    [HttpPut("{id:int}")]  // PUT /api/people/1
+    [HttpPut("{id:int}")]
     public async Task<IActionResult> UpdatePerson(int id, [FromBody] Person person)
     {
         try
         {
             if (id != person.Id)
             {
-                return BadRequest("Id in url and body mismatches"); // 400 + message in body 
+                return BadRequest("Id in url and body mismatches");
             }
             if (!await _context.People.AnyAsync(p => p.Id == id))
             {
-                return NotFound(); //404
+                return NotFound();
             }
             _context.People.Update(person);
             await _context.SaveChangesAsync();
-            return NoContent(); // 204 status code 
+            return NoContent();
         }
         catch (Exception ex)
         {
-            return StatusCode(StatusCodes.Status500InternalServerError, ex.Message); // 500 internal server error + message in the response body
+            return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
         }
     }
 

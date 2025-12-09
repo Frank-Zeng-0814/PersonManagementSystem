@@ -31,7 +31,7 @@ const Home = () => {
     ];
 
     const techStack = {
-        backend: [".NET 8", "Entity Framework Core", "SQLite", "Serilog", "Cloudinary"],
+        backend: [".NET 8", "Entity Framework Core", "PostgreSQL", "Serilog", "Cloudinary"],
         frontend: ["React 19", "Tailwind CSS", "React Router", "React Hook Form", "Axios"]
     };
 
