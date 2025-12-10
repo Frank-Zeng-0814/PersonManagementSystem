@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using Backend.Exceptions;
 
 namespace Backend.Middleware;
 
@@ -30,13 +31,29 @@ public class GlobalExceptionMiddleware
     private static Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         context.Response.ContentType = "application/json";
-        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+
+        var (statusCode, errorCode, message) = exception switch
+        {
+            DomainException domainEx => (
+                HttpStatusCode.UnprocessableEntity,
+                domainEx.ErrorCode,
+                domainEx.Message
+            ),
+            _ => (
+                HttpStatusCode.InternalServerError,
+                "INTERNAL_ERROR",
+                "An error occurred processing your request."
+            )
+        };
+
+        context.Response.StatusCode = (int)statusCode;
 
         var response = new
         {
             StatusCode = context.Response.StatusCode,
-            Message = "An error occurred processing your request.",
-            Detailed = exception.Message
+            ErrorCode = errorCode,
+            Message = message,
+            Details = exception.Message
         };
 
         return context.Response.WriteAsync(JsonSerializer.Serialize(response));

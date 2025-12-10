@@ -1,0 +1,12 @@
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./Backend/.env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped

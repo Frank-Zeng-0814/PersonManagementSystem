@@ -1,6 +1,9 @@
 import { Code, Database, Cloud, Zap, Globe, Sparkles } from 'lucide-react';
 
 const About = () => {
+    const apiUrl = import.meta.env.VITE_BASE_API_URL || 'http://localhost:3000';
+    const swaggerUrl = `${apiUrl}/swagger`;
+
     const apiEndpoints = [
         { method: "GET", path: "/api/people", description: "Get paginated people with search & filters" },
         { method: "GET", path: "/api/people/{id}", description: "Get person by ID" },
@@ -86,9 +89,12 @@ const About = () => {
                     <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                         <p className="text-sm text-blue-800">
                             <strong>Swagger Documentation:</strong> Access interactive API docs at{' '}
-                            <a href="http://localhost:3000/swagger" target="_blank" rel="noopener noreferrer" className="underline">
-                                http://localhost:3000/swagger
+                            <a href={swaggerUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-600">
+                                {swaggerUrl}
                             </a>
+                        </p>
+                        <p className="text-xs text-blue-600 mt-2">
+                            💡 Note: Swagger is only available when the backend API is running
                         </p>
                     </div>
                 </div>

@@ -1,12 +1,14 @@
 using Backend.Models;
 using Backend.Services;
 using Backend.Middleware;
+using Backend.Hubs;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .WriteTo.File("logs/app-.log", rollingInterval: RollingInterval.Day)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", Serilog.Events.LogEventLevel.Warning)
     .CreateLogger();
 
 var MyAllowSpecificOrigins = "_myAllowSpecific Origins";
@@ -28,12 +30,18 @@ builder.Services.AddCors(options =>
                       {
                           policy.WithOrigins(allowedOrigins.Split(','))
                           .AllowAnyMethod()
-                          .AllowAnyHeader();
+                          .AllowAnyHeader()
+                          .AllowCredentials(); // Required for SignalR
                       });
 });
 
 builder.Services.AddControllers();
+builder.Services.AddSignalR(); // Add SignalR services
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
+builder.Services.AddScoped<IEmploymentContractService, EmploymentContractService>();
+builder.Services.AddScoped<ILeaveRequestService, LeaveRequestService>();
+builder.Services.AddSingleton<INotificationPublisher, SignalRNotificationPublisher>(); // Use SignalR implementation
+builder.Services.AddHostedService<HrMonitoringService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -78,5 +86,6 @@ app.UseSerilogRequestLogging();
 
 app.UseCors(MyAllowSpecificOrigins);
 app.MapControllers();
+app.MapHub<NotificationsHub>("/hubs/notifications"); // Map SignalR Hub
 
 app.Run();
