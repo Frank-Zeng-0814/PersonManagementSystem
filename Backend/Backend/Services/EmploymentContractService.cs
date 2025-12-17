@@ -105,9 +105,17 @@ public class EmploymentContractService : IEmploymentContractService
 
     public async Task<EmploymentContract?> GetContractByIdAsync(int id, CancellationToken cancellationToken = default)
     {
-        return await _context.EmploymentContracts
+        var contract = await _context.EmploymentContracts
             .Include(c => c.Employee)
             .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
+
+        if (contract != null)
+        {
+            // Compute real-time status
+            contract.Status = ComputeContractStatus(contract.StartDate, contract.EndDate);
+        }
+
+        return contract;
     }
 
     public async Task<List<EmploymentContract>> GetActiveContractsByEmployeeIdAsync(int employeeId, CancellationToken cancellationToken = default)
@@ -120,10 +128,32 @@ public class EmploymentContractService : IEmploymentContractService
 
     public async Task<List<EmploymentContract>> GetAllContractsByEmployeeIdAsync(int employeeId, CancellationToken cancellationToken = default)
     {
-        return await _context.EmploymentContracts
+        var contracts = await _context.EmploymentContracts
             .Where(c => c.EmployeeId == employeeId)
             .OrderByDescending(c => c.StartDate)
             .ToListAsync(cancellationToken);
+
+        // Compute real-time status for each contract
+        foreach (var contract in contracts)
+        {
+            contract.Status = ComputeContractStatus(contract.StartDate, contract.EndDate);
+        }
+
+        return contracts;
+    }
+
+    // Compute contract status based on dates
+    private static ContractStatus ComputeContractStatus(DateTime startDate, DateTime? endDate)
+    {
+        var today = DateTime.UtcNow.Date;
+
+        if (startDate.Date > today)
+            return ContractStatus.Pending;
+
+        if (endDate.HasValue && endDate.Value.Date < today)
+            return ContractStatus.Ended;
+
+        return ContractStatus.Active;
     }
 
     public async Task EndExpiredContractsAsync(CancellationToken cancellationToken = default)
