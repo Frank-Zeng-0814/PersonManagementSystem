@@ -48,7 +48,8 @@ const EmployeeContracts = ({ employeeId }) => {
     try {
       await contractApi.create(employeeId, {
         employeeId: employeeId,
-        ...formData,
+        startDate: formData.startDate ? new Date(formData.startDate).toISOString() : null,
+        endDate: formData.endDate ? new Date(formData.endDate).toISOString() : null,
         employmentType: parseInt(formData.employmentType),
         baseSalary: parseFloat(formData.baseSalary),
       });

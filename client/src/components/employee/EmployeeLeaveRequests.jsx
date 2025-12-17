@@ -49,8 +49,10 @@ const EmployeeLeaveRequests = ({ employeeId, employeeName }) => {
     try {
       await leaveRequestApi.create(employeeId, {
         employeeId: employeeId,
-        ...formData,
+        startDate: formData.startDate ? new Date(formData.startDate).toISOString() : null,
+        endDate: formData.endDate ? new Date(formData.endDate).toISOString() : null,
         type: parseInt(formData.type),
+        reason: formData.reason,
       });
       toast.success('Leave request draft created successfully');
       setShowAddForm(false);
