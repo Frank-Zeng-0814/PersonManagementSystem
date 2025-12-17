@@ -47,6 +47,7 @@ const EmployeeContracts = ({ employeeId }) => {
     setLoading(true);
     try {
       await contractApi.create(employeeId, {
+        employeeId: employeeId,
         ...formData,
         employmentType: parseInt(formData.employmentType),
         baseSalary: parseFloat(formData.baseSalary),

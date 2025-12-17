@@ -48,6 +48,7 @@ const EmployeeLeaveRequests = ({ employeeId, employeeName }) => {
     setLoading(true);
     try {
       await leaveRequestApi.create(employeeId, {
+        employeeId: employeeId,
         ...formData,
         type: parseInt(formData.type),
       });
