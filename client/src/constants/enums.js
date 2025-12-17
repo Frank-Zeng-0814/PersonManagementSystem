@@ -36,16 +36,19 @@ export const EmploymentTypeLabels = {
 export const ContractStatus = {
   ACTIVE: 0,
   ENDED: 1,
+  PENDING: 2,
 };
 
 export const ContractStatusLabels = {
   [ContractStatus.ACTIVE]: 'Active',
   [ContractStatus.ENDED]: 'Ended',
+  [ContractStatus.PENDING]: 'Pending',
 };
 
 export const ContractStatusColors = {
   [ContractStatus.ACTIVE]: 'bg-green-100 text-green-800 border-green-200',
   [ContractStatus.ENDED]: 'bg-gray-100 text-gray-800 border-gray-200',
+  [ContractStatus.PENDING]: 'bg-blue-100 text-blue-800 border-blue-200',
 };
 
 // Leave Type

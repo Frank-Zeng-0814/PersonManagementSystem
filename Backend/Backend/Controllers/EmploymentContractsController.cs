@@ -19,7 +19,7 @@ public class EmploymentContractsController : ControllerBase
     [HttpGet("employees/{employeeId}/contracts")]
     public async Task<ActionResult<List<ContractDto>>> GetEmployeeContracts(int employeeId)
     {
-        var contracts = await _contractService.GetActiveContractsByEmployeeIdAsync(employeeId);
+        var contracts = await _contractService.GetAllContractsByEmployeeIdAsync(employeeId);
 
         var result = contracts.Select(c => new ContractDto
         {

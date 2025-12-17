@@ -51,11 +51,19 @@ public class EmploymentContractService : IEmploymentContractService
 
         // Determine contract status
         var today = DateTime.UtcNow.Date;
-        var contractStatus = ContractStatus.Active;
+        ContractStatus contractStatus;
 
-        if (dto.EndDate.HasValue && dto.EndDate.Value < today)
+        if (dto.StartDate > today)
+        {
+            contractStatus = ContractStatus.Pending;
+        }
+        else if (dto.EndDate.HasValue && dto.EndDate.Value < today)
         {
             contractStatus = ContractStatus.Ended;
+        }
+        else
+        {
+            contractStatus = ContractStatus.Active;
         }
 
         // Create contract
@@ -110,9 +118,41 @@ public class EmploymentContractService : IEmploymentContractService
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<EmploymentContract>> GetAllContractsByEmployeeIdAsync(int employeeId, CancellationToken cancellationToken = default)
+    {
+        return await _context.EmploymentContracts
+            .Where(c => c.EmployeeId == employeeId)
+            .OrderByDescending(c => c.StartDate)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task EndExpiredContractsAsync(CancellationToken cancellationToken = default)
     {
         var today = DateTime.UtcNow.Date;
+
+        // Activate pending contracts that should start today
+        var pendingContracts = await _context.EmploymentContracts
+            .Where(c => c.Status == ContractStatus.Pending && c.StartDate <= today)
+            .Include(c => c.Employee)
+            .ToListAsync(cancellationToken);
+
+        foreach (var contract in pendingContracts)
+        {
+            contract.Status = ContractStatus.Active;
+            contract.Employee.Status = EmployeeStatus.Active;
+
+            if (_notificationPublisher is SignalRNotificationPublisher signalRPublisher)
+            {
+                await signalRPublisher.PublishContractUpdatedAsync(
+                    contract.Id,
+                    contract.EmployeeId,
+                    contract.Employee.FullName,
+                    "Active",
+                    contract.EndDate,
+                    $"Employment contract is now active",
+                    cancellationToken);
+            }
+        }
 
         // Find all active contracts that have expired
         var expiredContracts = await _context.EmploymentContracts
@@ -151,7 +191,7 @@ public class EmploymentContractService : IEmploymentContractService
             }
         }
 
-        if (expiredContracts.Any())
+        if (pendingContracts.Any() || expiredContracts.Any())
         {
             await _context.SaveChangesAsync(cancellationToken);
         }
