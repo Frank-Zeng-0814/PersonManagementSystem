@@ -55,4 +55,9 @@ export const leaveRequestApi = {
   cancel: (id) => api.post(`/api/leave-requests/${id}/cancel`),
 };
 
+// Monitoring APIs
+export const monitoringApi = {
+  triggerHrChecks: () => api.post('/api/monitoring/trigger-hr-checks'),
+};
+
 export default api;

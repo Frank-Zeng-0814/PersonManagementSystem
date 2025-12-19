@@ -1,85 +1,89 @@
 using Backend.DTOs;
 using Backend.Models;
+using Backend.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
-namespace Backend.Services;
+namespace Backend.Controllers;
 
-/// <summary>
-/// Background service that monitors HR-related entities and performs automated tasks.
-/// Runs every hour to:
-/// - End expired contracts
-/// - Complete finished leaves
-/// - Notify about expiring contracts
-/// - Notify about upcoming leaves
-/// </summary>
-public class HrMonitoringService : BackgroundService
+[ApiController]
+[Route("api/[controller]")]
+public class MonitoringController : ControllerBase
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly ILogger<HrMonitoringService> _logger;
-    private static readonly TimeSpan CheckInterval = TimeSpan.FromHours(1);
+    private readonly ILogger<MonitoringController> _logger;
+    private readonly IMemoryCache _cache;
+    private const string CACHE_KEY = "LastHrCheckTime";
+    private static readonly TimeSpan MinCheckInterval = TimeSpan.FromMinutes(1);
 
-    public HrMonitoringService(
+    public MonitoringController(
         IServiceProvider serviceProvider,
-        ILogger<HrMonitoringService> logger)
+        ILogger<MonitoringController> logger,
+        IMemoryCache cache)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
+        _cache = cache;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    [HttpPost("trigger-hr-checks")]
+    public async Task<IActionResult> TriggerHrChecks(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("HR Monitoring Service started");
-
-        // Run immediately on startup, then every hour
-        while (!stoppingToken.IsCancellationRequested)
+        try
         {
-            try
+            // Check if we've run recently (rate limiting)
+            if (_cache.TryGetValue(CACHE_KEY, out DateTime lastCheckTime))
             {
-                await PerformMonitoringTasksAsync(stoppingToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred during HR monitoring tasks");
+                var timeSinceLastCheck = DateTime.UtcNow - lastCheckTime;
+                if (timeSinceLastCheck < MinCheckInterval)
+                {
+                    var remainingSeconds = (int)(MinCheckInterval - timeSinceLastCheck).TotalSeconds;
+                    _logger.LogInformation(
+                        "HR check request throttled. Last check was {Seconds}s ago. Please wait {Remaining}s",
+                        (int)timeSinceLastCheck.TotalSeconds,
+                        remainingSeconds);
+
+                    return Ok(new
+                    {
+                        message = "HR checks already performed recently",
+                        lastCheckTime = lastCheckTime,
+                        nextCheckAvailableIn = remainingSeconds,
+                        throttled = true
+                    });
+                }
             }
 
-            // Wait for next execution
-            try
+            _logger.LogInformation("Manual HR monitoring check triggered at {Time}", DateTime.UtcNow);
+
+            using var scope = _serviceProvider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var notificationPublisher = scope.ServiceProvider.GetRequiredService<INotificationPublisher>();
+
+            var today = DateTime.UtcNow.Date;
+
+            await EndExpiredContractsAsync(context, notificationPublisher, today, cancellationToken);
+            await CompleteFinishedLeavesAsync(context, notificationPublisher, today, cancellationToken);
+            await NotifyExpiringContractsAsync(context, notificationPublisher, today, cancellationToken);
+            await NotifyUpcomingLeavesAsync(context, notificationPublisher, today, cancellationToken);
+
+            // Update cache with current time
+            _cache.Set(CACHE_KEY, DateTime.UtcNow, MinCheckInterval);
+
+            _logger.LogInformation("Manual HR monitoring check completed at {Time}", DateTime.UtcNow);
+
+            return Ok(new
             {
-                await Task.Delay(CheckInterval, stoppingToken);
-            }
-            catch (TaskCanceledException)
-            {
-                // Service is stopping
-                break;
-            }
+                message = "HR monitoring checks completed successfully",
+                timestamp = DateTime.UtcNow,
+                throttled = false
+            });
         }
-
-        _logger.LogInformation("HR Monitoring Service stopped");
-    }
-
-    private async Task PerformMonitoringTasksAsync(CancellationToken cancellationToken)
-    {
-        _logger.LogInformation("Starting HR monitoring tasks at {Time}", DateTime.UtcNow);
-
-        using var scope = _serviceProvider.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var notificationPublisher = scope.ServiceProvider.GetRequiredService<INotificationPublisher>();
-
-        var today = DateTime.UtcNow.Date;
-
-        // Task 1: End expired contracts
-        await EndExpiredContractsAsync(context, notificationPublisher, today, cancellationToken);
-
-        // Task 2: Complete finished leaves
-        await CompleteFinishedLeavesAsync(context, notificationPublisher, today, cancellationToken);
-
-        // Task 3: Notify about expiring contracts (30 days)
-        await NotifyExpiringContractsAsync(context, notificationPublisher, today, cancellationToken);
-
-        // Task 4: Notify about upcoming leaves (7 days)
-        await NotifyUpcomingLeavesAsync(context, notificationPublisher, today, cancellationToken);
-
-        _logger.LogInformation("Completed HR monitoring tasks at {Time}", DateTime.UtcNow);
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during manual HR monitoring check");
+            return StatusCode(500, new { message = "Failed to complete HR monitoring checks", error = ex.Message });
+        }
     }
 
     private async Task EndExpiredContractsAsync(
@@ -107,7 +111,6 @@ public class HrMonitoringService : BackgroundService
         {
             contract.Status = ContractStatus.Ended;
 
-            // Check if employee has any other active contracts
             var hasOtherActiveContracts = await context.EmploymentContracts
                 .AnyAsync(c => c.EmployeeId == contract.EmployeeId
                     && c.Id != contract.Id
@@ -123,7 +126,6 @@ public class HrMonitoringService : BackgroundService
                     contract.EmployeeId);
             }
 
-            // Publish notification
             if (contract.Employee != null)
             {
                 await notificationPublisher.PublishContractEndedAsync(new ContractNotificationDto
@@ -168,7 +170,6 @@ public class HrMonitoringService : BackgroundService
         {
             leave.Status = LeaveRequestStatus.Completed;
 
-            // Publish notification
             if (leave.Employee != null)
             {
                 await notificationPublisher.PublishLeaveCompletedAsync(new LeaveNotificationDto

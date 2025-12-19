@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import * as signalR from '@microsoft/signalr';
+import { monitoringApi } from '../services/api';
 
 const useNotifications = () => {
   const [notifications, setNotifications] = useState([]);
@@ -68,6 +69,14 @@ const useNotifications = () => {
         await connection.start();
         console.log('SignalR Connected');
         setIsConnected(true);
+
+        // Trigger HR checks when connected
+        try {
+          await monitoringApi.triggerHrChecks();
+          console.log('HR monitoring checks triggered');
+        } catch (error) {
+          console.error('Failed to trigger HR checks:', error);
+        }
       } catch (err) {
         console.error('SignalR Connection Error:', err);
         setIsConnected(false);
