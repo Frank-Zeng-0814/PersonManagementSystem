@@ -91,10 +91,16 @@ public class EmployeesController : ControllerBase
         // Validate position exists if provided
         if (dto.PositionId.HasValue)
         {
-            var positionExists = await _context.Positions.AnyAsync(p => p.Id == dto.PositionId.Value);
-            if (!positionExists)
+            var position = await _context.Positions.FindAsync(dto.PositionId.Value);
+            if (position == null)
             {
                 return BadRequest(new { Message = "Position not found" });
+            }
+
+            // Validate position belongs to the same department
+            if (dto.DepartmentId.HasValue && position.DepartmentId != dto.DepartmentId.Value)
+            {
+                return BadRequest(new { Message = "Position does not belong to the selected department" });
             }
         }
 
@@ -157,10 +163,16 @@ public class EmployeesController : ControllerBase
         // Validate position exists if provided
         if (dto.PositionId.HasValue)
         {
-            var positionExists = await _context.Positions.AnyAsync(p => p.Id == dto.PositionId.Value);
-            if (!positionExists)
+            var position = await _context.Positions.FindAsync(dto.PositionId.Value);
+            if (position == null)
             {
                 return BadRequest(new { Message = "Position not found" });
+            }
+
+            // Validate position belongs to the same department
+            if (dto.DepartmentId.HasValue && position.DepartmentId != dto.DepartmentId.Value)
+            {
+                return BadRequest(new { Message = "Position does not belong to the selected department" });
             }
         }
 
