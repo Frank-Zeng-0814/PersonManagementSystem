@@ -111,7 +111,6 @@ public class EmploymentContractService : IEmploymentContractService
 
         if (contract != null)
         {
-            // Compute real-time status
             contract.Status = ComputeContractStatus(contract.StartDate, contract.EndDate);
         }
 
@@ -133,7 +132,6 @@ public class EmploymentContractService : IEmploymentContractService
             .OrderByDescending(c => c.StartDate)
             .ToListAsync(cancellationToken);
 
-        // Compute real-time status for each contract
         foreach (var contract in contracts)
         {
             contract.Status = ComputeContractStatus(contract.StartDate, contract.EndDate);
@@ -142,7 +140,6 @@ public class EmploymentContractService : IEmploymentContractService
         return contracts;
     }
 
-    // Compute contract status based on dates
     private static ContractStatus ComputeContractStatus(DateTime startDate, DateTime? endDate)
     {
         var today = DateTime.UtcNow.Date;
@@ -194,14 +191,13 @@ public class EmploymentContractService : IEmploymentContractService
         {
             contract.Status = ContractStatus.Ended;
 
-            // Check if employee has any other active contracts
-            var hasOtherActiveContracts = await _context.EmploymentContracts
-                .AnyAsync(c => c.EmployeeId == contract.EmployeeId
-                    && c.Id != contract.Id
-                    && c.Status == ContractStatus.Active,
-                    cancellationToken);
+            var otherContracts = await _context.EmploymentContracts
+                .Where(c => c.EmployeeId == contract.EmployeeId && c.Id != contract.Id)
+                .ToListAsync(cancellationToken);
 
-            // If no active contracts remain, set employee to inactive
+            var hasOtherActiveContracts = otherContracts.Any(c =>
+                ComputeContractStatus(c.StartDate, c.EndDate) == ContractStatus.Active);
+
             if (!hasOtherActiveContracts)
             {
                 contract.Employee.Status = EmployeeStatus.Inactive;

@@ -48,6 +48,7 @@ export const contractApi = {
 export const leaveRequestApi = {
   getByEmployee: (employeeId) => api.get(`/api/employees/${employeeId}/leave-requests`),
   create: (employeeId, data) => api.post(`/api/employees/${employeeId}/leave-requests`, data),
+  update: (id, data) => api.put(`/api/leave-requests/${id}`, data),
   submit: (id) => api.post(`/api/leave-requests/${id}/submit`),
   approve: (id) => api.post(`/api/leave-requests/${id}/approve`),
   reject: (id) => api.post(`/api/leave-requests/${id}/reject`),

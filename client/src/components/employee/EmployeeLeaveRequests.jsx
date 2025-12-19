@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Calendar, CheckCircle, XCircle, Send, Ban } from 'lucide-react';
+import { Plus, Calendar, CheckCircle, XCircle, Send, Ban, Edit2 } from 'lucide-react';
 import { leaveRequestApi } from '../../services/api';
 import {
   LeaveRequestStatusLabels,
@@ -14,6 +14,7 @@ const EmployeeLeaveRequests = ({ employeeId, employeeName }) => {
   const [leaveRequests, setLeaveRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     type: LeaveType.ANNUAL,
     startDate: '',
@@ -43,19 +44,51 @@ const EmployeeLeaveRequests = ({ employeeId, employeeName }) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleStartEdit = (leaveRequest) => {
+    setEditingId(leaveRequest.id);
+    setFormData({
+      type: leaveRequest.type,
+      startDate: leaveRequest.startDate ? new Date(leaveRequest.startDate).toISOString().split('T')[0] : '',
+      endDate: leaveRequest.endDate ? new Date(leaveRequest.endDate).toISOString().split('T')[0] : '',
+      reason: leaveRequest.reason || '',
+    });
+    setShowAddForm(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setFormData({
+      type: LeaveType.ANNUAL,
+      startDate: '',
+      endDate: '',
+      reason: '',
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await leaveRequestApi.create(employeeId, {
-        employeeId: employeeId,
-        startDate: formData.startDate ? new Date(formData.startDate).toISOString() : null,
-        endDate: formData.endDate ? new Date(formData.endDate).toISOString() : null,
-        type: parseInt(formData.type),
-        reason: formData.reason,
-      });
-      toast.success('Leave request draft created successfully');
-      setShowAddForm(false);
+      if (editingId) {
+        await leaveRequestApi.update(editingId, {
+          startDate: formData.startDate ? new Date(formData.startDate).toISOString() : null,
+          endDate: formData.endDate ? new Date(formData.endDate).toISOString() : null,
+          type: parseInt(formData.type),
+          reason: formData.reason,
+        });
+        toast.success('Leave request updated successfully');
+        setEditingId(null);
+      } else {
+        await leaveRequestApi.create(employeeId, {
+          employeeId: employeeId,
+          startDate: formData.startDate ? new Date(formData.startDate).toISOString() : null,
+          endDate: formData.endDate ? new Date(formData.endDate).toISOString() : null,
+          type: parseInt(formData.type),
+          reason: formData.reason,
+        });
+        toast.success('Leave request draft created successfully');
+        setShowAddForm(false);
+      }
       setFormData({
         type: LeaveType.ANNUAL,
         startDate: '',
@@ -64,8 +97,8 @@ const EmployeeLeaveRequests = ({ employeeId, employeeName }) => {
       });
       loadLeaveRequests();
     } catch (error) {
-      console.error('Create leave request error:', error);
-      const message = error.response?.data?.message || error.response?.data?.title || 'Failed to create leave request';
+      console.error('Save leave request error:', error);
+      const message = error.response?.data?.message || error.response?.data?.title || 'Failed to save leave request';
       toast.error(message);
     } finally {
       setLoading(false);
@@ -114,14 +147,24 @@ const EmployeeLeaveRequests = ({ employeeId, employeeName }) => {
     switch (status) {
       case LeaveRequestStatus.DRAFT:
         return (
-          <button
-            onClick={() => handleStatusAction(id, 'submit')}
-            disabled={loading}
-            className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-          >
-            <Send className="w-3.5 h-3.5" />
-            Submit
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleStartEdit(leaveRequest)}
+              disabled={loading}
+              className="flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-50"
+            >
+              <Edit2 className="w-3.5 h-3.5" />
+              Edit
+            </button>
+            <button
+              onClick={() => handleStatusAction(id, 'submit')}
+              disabled={loading}
+              className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+            >
+              <Send className="w-3.5 h-3.5" />
+              Submit
+            </button>
+          </div>
         );
 
       case LeaveRequestStatus.SUBMITTED:
@@ -180,10 +223,12 @@ const EmployeeLeaveRequests = ({ employeeId, employeeName }) => {
         </button>
       </div>
 
-      {/* Add Leave Request Form */}
-      {showAddForm && (
+      {/* Add/Edit Leave Request Form */}
+      {(showAddForm || editingId) && (
         <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <h4 className="font-medium text-gray-900 mb-4">New Leave Request (Draft)</h4>
+          <h4 className="font-medium text-gray-900 mb-4">
+            {editingId ? 'Edit Leave Request' : 'New Leave Request (Draft)'}
+          </h4>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -254,11 +299,17 @@ const EmployeeLeaveRequests = ({ employeeId, employeeName }) => {
                 disabled={loading}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Creating...' : 'Create Draft'}
+                {loading ? (editingId ? 'Updating...' : 'Creating...') : (editingId ? 'Update' : 'Create Draft')}
               </button>
               <button
                 type="button"
-                onClick={() => setShowAddForm(false)}
+                onClick={() => {
+                  if (editingId) {
+                    handleCancelEdit();
+                  } else {
+                    setShowAddForm(false);
+                  }
+                }}
                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
               >
                 Cancel
@@ -269,7 +320,7 @@ const EmployeeLeaveRequests = ({ employeeId, employeeName }) => {
       )}
 
       {/* Leave Requests List */}
-      {loading && !showAddForm ? (
+      {loading && !showAddForm && !editingId ? (
         <div className="flex justify-center items-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
@@ -286,7 +337,7 @@ const EmployeeLeaveRequests = ({ employeeId, employeeName }) => {
         </div>
       ) : (
         <div className="space-y-3">
-          {leaveRequests.map((leaveRequest) => (
+          {leaveRequests.filter(lr => lr.id !== editingId).map((leaveRequest) => (
             <div
               key={leaveRequest.id}
               className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
