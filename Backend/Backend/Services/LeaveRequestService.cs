@@ -111,7 +111,9 @@ public class LeaveRequestService : ILeaveRequestService
 
     public async Task<LeaveRequest> SubmitLeaveAsync(int leaveRequestId, CancellationToken cancellationToken = default)
     {
-        var leaveRequest = await _context.LeaveRequests.FindAsync(new object[] { leaveRequestId }, cancellationToken);
+        var leaveRequest = await _context.LeaveRequests
+            .Include(lr => lr.Employee)
+            .FirstOrDefaultAsync(lr => lr.Id == leaveRequestId, cancellationToken);
 
         if (leaveRequest == null)
         {
@@ -126,6 +128,18 @@ public class LeaveRequestService : ILeaveRequestService
 
         leaveRequest.Status = LeaveRequestStatus.Submitted;
         await _context.SaveChangesAsync(cancellationToken);
+
+        // Publish notification via SignalR
+        if (leaveRequest.Employee != null)
+        {
+            await _notificationPublisher.PublishLeaveRequestUpdatedAsync(
+                leaveRequest.Id,
+                leaveRequest.EmployeeId,
+                leaveRequest.Employee.FullName,
+                "Submitted",
+                "Leave request has been submitted for approval",
+                cancellationToken);
+        }
 
         return leaveRequest;
     }
