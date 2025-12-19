@@ -112,7 +112,7 @@ public class EmployeesController : ControllerBase
             AvatarUrl = dto.AvatarUrl,
             DepartmentId = dto.DepartmentId,
             PositionId = dto.PositionId,
-            Status = EmployeeStatus.Active
+            Status = EmployeeStatus.Inactive // New employees start as Inactive until they have an active contract
         };
 
         _context.Employees.Add(employee);

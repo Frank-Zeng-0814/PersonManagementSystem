@@ -64,6 +64,7 @@ public class MonitoringController : ControllerBase
 
             await EndExpiredContractsAsync(context, notificationPublisher, today, cancellationToken);
             await CompleteFinishedLeavesAsync(context, notificationPublisher, today, cancellationToken);
+            await StartApprovedLeavesAsync(context, today, cancellationToken);
             await NotifyExpiringContractsAsync(context, notificationPublisher, today, cancellationToken);
             await NotifyUpcomingLeavesAsync(context, notificationPublisher, today, cancellationToken);
 
@@ -170,8 +171,26 @@ public class MonitoringController : ControllerBase
         {
             leave.Status = LeaveRequestStatus.Completed;
 
+            // Restore employee status to Active if no other ongoing leaves
             if (leave.Employee != null)
             {
+                var hasOtherActiveLeaves = await context.LeaveRequests
+                    .AnyAsync(lr => lr.EmployeeId == leave.EmployeeId
+                        && lr.Id != leave.Id
+                        && lr.Status == LeaveRequestStatus.Approved
+                        && lr.StartDate.Date <= today
+                        && lr.EndDate.Date >= today,
+                        cancellationToken);
+
+                if (!hasOtherActiveLeaves)
+                {
+                    leave.Employee.Status = EmployeeStatus.Active;
+                    _logger.LogInformation(
+                        "Employee {EmployeeName} (ID: {EmployeeId}) restored to Active after leave completion",
+                        leave.Employee.FullName,
+                        leave.EmployeeId);
+                }
+
                 await notificationPublisher.PublishLeaveCompletedAsync(new LeaveNotificationDto
                 {
                     LeaveRequestId = leave.Id,
@@ -281,5 +300,41 @@ public class MonitoringController : ControllerBase
                 Reason = leave.Reason
             }, cancellationToken);
         }
+    }
+
+    private async Task StartApprovedLeavesAsync(
+        AppDbContext context,
+        DateTime today,
+        CancellationToken cancellationToken)
+    {
+        // Find approved leaves starting today
+        var leavesStartingToday = await context.LeaveRequests
+            .Include(lr => lr.Employee)
+            .Where(lr => lr.Status == LeaveRequestStatus.Approved
+                && lr.StartDate.Date == today)
+            .ToListAsync(cancellationToken);
+
+        if (!leavesStartingToday.Any())
+        {
+            _logger.LogDebug("No leaves starting today");
+            return;
+        }
+
+        _logger.LogInformation("Found {Count} leaves starting today", leavesStartingToday.Count);
+
+        foreach (var leave in leavesStartingToday)
+        {
+            if (leave.Employee != null)
+            {
+                leave.Employee.Status = EmployeeStatus.OnLeave;
+                _logger.LogInformation(
+                    "Employee {EmployeeName} (ID: {EmployeeId}) set to OnLeave (leave started)",
+                    leave.Employee.FullName,
+                    leave.EmployeeId);
+            }
+        }
+
+        await context.SaveChangesAsync(cancellationToken);
+        _logger.LogInformation("Updated {Count} employees to OnLeave status", leavesStartingToday.Count);
     }
 }

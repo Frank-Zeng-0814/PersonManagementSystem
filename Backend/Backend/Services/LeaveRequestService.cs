@@ -167,6 +167,14 @@ public class LeaveRequestService : ILeaveRequestService
 
         leaveRequest.Status = LeaveRequestStatus.Approved;
         leaveRequest.ApproverName = approverName;
+
+        // Auto-set employee status to OnLeave if leave starts today or in the past
+        var today = DateTime.UtcNow.Date;
+        if (leaveRequest.StartDate.Date <= today && leaveRequest.Employee != null)
+        {
+            leaveRequest.Employee.Status = EmployeeStatus.OnLeave;
+        }
+
         await _context.SaveChangesAsync(cancellationToken);
 
         // Publish notification via SignalR

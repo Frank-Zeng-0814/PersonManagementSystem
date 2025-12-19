@@ -70,13 +70,16 @@ public class HrMonitoringService : BackgroundService
         // Task 1: End expired contracts
         await EndExpiredContractsAsync(context, notificationPublisher, today, cancellationToken);
 
-        // Task 2: Complete finished leaves
+        // Task 2: Complete finished leaves and restore employee status
         await CompleteFinishedLeavesAsync(context, notificationPublisher, today, cancellationToken);
 
-        // Task 3: Notify about expiring contracts (30 days)
+        // Task 3: Start approved leaves (set employees to OnLeave)
+        await StartApprovedLeavesAsync(context, today, cancellationToken);
+
+        // Task 4: Notify about expiring contracts (30 days)
         await NotifyExpiringContractsAsync(context, notificationPublisher, today, cancellationToken);
 
-        // Task 4: Notify about upcoming leaves (7 days)
+        // Task 5: Notify about upcoming leaves (7 days)
         await NotifyUpcomingLeavesAsync(context, notificationPublisher, today, cancellationToken);
 
         _logger.LogInformation("Completed HR monitoring tasks at {Time}", DateTime.UtcNow);
@@ -168,9 +171,26 @@ public class HrMonitoringService : BackgroundService
         {
             leave.Status = LeaveRequestStatus.Completed;
 
-            // Publish notification
+            // Restore employee status to Active if no other ongoing leaves
             if (leave.Employee != null)
             {
+                var hasOtherActiveLeaves = await context.LeaveRequests
+                    .AnyAsync(lr => lr.EmployeeId == leave.EmployeeId
+                        && lr.Id != leave.Id
+                        && lr.Status == LeaveRequestStatus.Approved
+                        && lr.StartDate.Date <= today
+                        && lr.EndDate.Date >= today,
+                        cancellationToken);
+
+                if (!hasOtherActiveLeaves)
+                {
+                    leave.Employee.Status = EmployeeStatus.Active;
+                    _logger.LogInformation(
+                        "Employee {EmployeeName} (ID: {EmployeeId}) restored to Active after leave completion",
+                        leave.Employee.FullName,
+                        leave.EmployeeId);
+                }
+
                 await notificationPublisher.PublishLeaveCompletedAsync(new LeaveNotificationDto
                 {
                     LeaveRequestId = leave.Id,
@@ -280,5 +300,41 @@ public class HrMonitoringService : BackgroundService
                 Reason = leave.Reason
             }, cancellationToken);
         }
+    }
+
+    private async Task StartApprovedLeavesAsync(
+        AppDbContext context,
+        DateTime today,
+        CancellationToken cancellationToken)
+    {
+        // Find approved leaves starting today
+        var leavesStartingToday = await context.LeaveRequests
+            .Include(lr => lr.Employee)
+            .Where(lr => lr.Status == LeaveRequestStatus.Approved
+                && lr.StartDate.Date == today)
+            .ToListAsync(cancellationToken);
+
+        if (!leavesStartingToday.Any())
+        {
+            _logger.LogDebug("No leaves starting today");
+            return;
+        }
+
+        _logger.LogInformation("Found {Count} leaves starting today", leavesStartingToday.Count);
+
+        foreach (var leave in leavesStartingToday)
+        {
+            if (leave.Employee != null)
+            {
+                leave.Employee.Status = EmployeeStatus.OnLeave;
+                _logger.LogInformation(
+                    "Employee {EmployeeName} (ID: {EmployeeId}) set to OnLeave (leave started)",
+                    leave.Employee.FullName,
+                    leave.EmployeeId);
+            }
+        }
+
+        await context.SaveChangesAsync(cancellationToken);
+        _logger.LogInformation("Updated {Count} employees to OnLeave status", leavesStartingToday.Count);
     }
 }
