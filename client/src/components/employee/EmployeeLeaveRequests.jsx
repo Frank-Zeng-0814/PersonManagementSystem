@@ -114,11 +114,11 @@ const EmployeeLeaveRequests = ({ employeeId, employeeName }) => {
           toast.success('Leave request submitted');
           break;
         case 'approve':
-          await leaveRequestApi.approve(leaveRequestId);
+          await leaveRequestApi.approve(leaveRequestId, 'HR Manager');
           toast.success('Leave request approved');
           break;
         case 'reject':
-          await leaveRequestApi.reject(leaveRequestId);
+          await leaveRequestApi.reject(leaveRequestId, 'HR Manager');
           toast.success('Leave request rejected');
           break;
         case 'cancel':

@@ -50,8 +50,8 @@ export const leaveRequestApi = {
   create: (employeeId, data) => api.post(`/api/employees/${employeeId}/leave-requests`, data),
   update: (id, data) => api.put(`/api/leave-requests/${id}`, data),
   submit: (id) => api.post(`/api/leave-requests/${id}/submit`),
-  approve: (id) => api.post(`/api/leave-requests/${id}/approve`),
-  reject: (id) => api.post(`/api/leave-requests/${id}/reject`),
+  approve: (id, approverName) => api.post(`/api/leave-requests/${id}/approve`, { approverName }),
+  reject: (id, approverName) => api.post(`/api/leave-requests/${id}/reject`, { approverName }),
   cancel: (id) => api.post(`/api/leave-requests/${id}/cancel`),
 };
 
