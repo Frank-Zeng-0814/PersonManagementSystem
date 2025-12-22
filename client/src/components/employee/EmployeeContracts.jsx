@@ -64,7 +64,11 @@ const EmployeeContracts = ({ employeeId }) => {
       loadContracts();
     } catch (error) {
       console.error('Create contract error:', error);
-      const message = error.response?.data?.message || error.response?.data?.title || 'Failed to create contract';
+      const message = error.response?.data?.message ||
+                      error.response?.data?.Message ||
+                      error.response?.data?.title ||
+                      error.message ||
+                      'Failed to create contract';
       toast.error(message);
     } finally {
       setLoading(false);

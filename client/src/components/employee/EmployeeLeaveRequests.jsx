@@ -98,7 +98,11 @@ const EmployeeLeaveRequests = ({ employeeId, employeeName }) => {
       loadLeaveRequests();
     } catch (error) {
       console.error('Save leave request error:', error);
-      const message = error.response?.data?.message || error.response?.data?.title || 'Failed to save leave request';
+      const message = error.response?.data?.message ||
+                      error.response?.data?.Message ||
+                      error.response?.data?.title ||
+                      error.message ||
+                      'Failed to save leave request';
       toast.error(message);
     } finally {
       setLoading(false);
@@ -129,7 +133,11 @@ const EmployeeLeaveRequests = ({ employeeId, employeeName }) => {
       loadLeaveRequests();
     } catch (error) {
       console.error('Status action error:', error);
-      const message = error.response?.data?.message || error.response?.data?.title || `Failed to ${action} leave request`;
+      const message = error.response?.data?.message ||
+                      error.response?.data?.Message ||
+                      error.response?.data?.title ||
+                      error.message ||
+                      `Failed to ${action} leave request`;
       toast.error(message);
     } finally {
       setLoading(false);

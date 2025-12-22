@@ -50,12 +50,16 @@ public class GlobalExceptionMiddleware
 
         var response = new
         {
-            StatusCode = context.Response.StatusCode,
-            ErrorCode = errorCode,
-            Message = message,
-            Details = exception.Message
+            statusCode = context.Response.StatusCode,
+            errorCode = errorCode,
+            message = message
         };
 
-        return context.Response.WriteAsync(JsonSerializer.Serialize(response));
+        var options = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
+        return context.Response.WriteAsync(JsonSerializer.Serialize(response, options));
     }
 }

@@ -80,7 +80,11 @@ const NewPerson = () => {
       }
     } catch (error) {
       console.error('Delete error:', error);
-      toast.error(error.response?.data?.message || 'Failed to delete employee');
+      const message = error.response?.data?.message ||
+                      error.response?.data?.Message ||
+                      error.message ||
+                      'Failed to delete employee';
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -102,7 +106,11 @@ const NewPerson = () => {
       await loadEmployees();
     } catch (error) {
       console.error('Form submit error:', error);
-      toast.error(error.response?.data?.message || 'Failed to save employee');
+      const message = error.response?.data?.message ||
+                      error.response?.data?.Message ||
+                      error.message ||
+                      'Failed to save employee';
+      toast.error(message);
     } finally {
       setLoading(false);
     }
