@@ -16,7 +16,7 @@ public class HrMonitoringService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<HrMonitoringService> _logger;
-    private static readonly TimeSpan CheckInterval = TimeSpan.FromHours(1);
+    private static readonly TimeSpan CheckInterval = TimeSpan.FromMinutes(5);
 
     public HrMonitoringService(
         IServiceProvider serviceProvider,
