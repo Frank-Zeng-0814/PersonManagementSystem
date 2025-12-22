@@ -192,16 +192,13 @@ public class LeaveRequestService : ILeaveRequestService
         await _context.SaveChangesAsync(cancellationToken);
 
         // Publish notification via SignalR
-        if (_notificationPublisher is SignalRNotificationPublisher signalRPublisher)
-        {
-            await signalRPublisher.PublishLeaveRequestUpdatedAsync(
-                leaveRequest.Id,
-                leaveRequest.EmployeeId,
-                leaveRequest.Employee.FullName,
-                "Approved",
-                $"Leave request approved by {approverName}",
-                cancellationToken);
-        }
+        await _notificationPublisher.PublishLeaveRequestUpdatedAsync(
+            leaveRequest.Id,
+            leaveRequest.EmployeeId,
+            leaveRequest.Employee.FullName,
+            "Approved",
+            $"Leave request approved by {approverName}",
+            cancellationToken);
 
         return leaveRequest;
     }
@@ -228,16 +225,13 @@ public class LeaveRequestService : ILeaveRequestService
         await _context.SaveChangesAsync(cancellationToken);
 
         // Publish notification via SignalR
-        if (_notificationPublisher is SignalRNotificationPublisher signalRPublisher)
-        {
-            await signalRPublisher.PublishLeaveRequestUpdatedAsync(
-                leaveRequest.Id,
-                leaveRequest.EmployeeId,
-                leaveRequest.Employee.FullName,
-                "Rejected",
-                $"Leave request rejected by {approverName}",
-                cancellationToken);
-        }
+        await _notificationPublisher.PublishLeaveRequestUpdatedAsync(
+            leaveRequest.Id,
+            leaveRequest.EmployeeId,
+            leaveRequest.Employee.FullName,
+            "Rejected",
+            $"Leave request rejected by {approverName}",
+            cancellationToken);
 
         return leaveRequest;
     }
@@ -263,16 +257,13 @@ public class LeaveRequestService : ILeaveRequestService
         await _context.SaveChangesAsync(cancellationToken);
 
         // Publish notification via SignalR
-        if (_notificationPublisher is SignalRNotificationPublisher signalRPublisher)
-        {
-            await signalRPublisher.PublishLeaveRequestUpdatedAsync(
-                leaveRequest.Id,
-                leaveRequest.EmployeeId,
-                leaveRequest.Employee.FullName,
-                "Cancelled",
-                "Leave request has been cancelled",
-                cancellationToken);
-        }
+        await _notificationPublisher.PublishLeaveRequestUpdatedAsync(
+            leaveRequest.Id,
+            leaveRequest.EmployeeId,
+            leaveRequest.Employee.FullName,
+            "Cancelled",
+            "Leave request has been cancelled",
+            cancellationToken);
 
         return leaveRequest;
     }

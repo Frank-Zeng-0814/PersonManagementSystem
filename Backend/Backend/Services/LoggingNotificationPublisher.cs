@@ -63,4 +63,43 @@ public class LoggingNotificationPublisher : INotificationPublisher
 
         return Task.CompletedTask;
     }
+
+    public Task PublishLeaveRequestUpdatedAsync(int leaveRequestId, int employeeId, string employeeName, string status, string? message = null, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation(
+            "Leave request updated: Employee {EmployeeName} (ID: {EmployeeId}), Leave ID: {LeaveId}, Status: {Status}, Message: {Message}",
+            employeeName,
+            employeeId,
+            leaveRequestId,
+            status,
+            message ?? "N/A");
+
+        return Task.CompletedTask;
+    }
+
+    public Task PublishContractUpdatedAsync(int contractId, int employeeId, string employeeName, string status, DateTime? endDate = null, string? message = null, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation(
+            "Contract updated: Employee {EmployeeName} (ID: {EmployeeId}), Contract ID: {ContractId}, Status: {Status}, End Date: {EndDate}, Message: {Message}",
+            employeeName,
+            employeeId,
+            contractId,
+            status,
+            endDate?.ToString("yyyy-MM-dd") ?? "N/A",
+            message ?? "N/A");
+
+        return Task.CompletedTask;
+    }
+
+    public Task PublishEmployeeUpdatedAsync(int employeeId, string employeeName, string changeType, string? message = null, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation(
+            "Employee updated: {EmployeeName} (ID: {EmployeeId}), Change Type: {ChangeType}, Message: {Message}",
+            employeeName,
+            employeeId,
+            changeType,
+            message ?? "N/A");
+
+        return Task.CompletedTask;
+    }
 }
