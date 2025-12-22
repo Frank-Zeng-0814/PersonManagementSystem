@@ -5,10 +5,12 @@ const useNotifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
   const connectionRef = useRef(null);
+  const notificationIdCounter = useRef(0);
 
   const addNotification = useCallback((type, data) => {
+    notificationIdCounter.current += 1;
     const notification = {
-      id: Date.now(),
+      id: `${Date.now()}-${notificationIdCounter.current}`,
       type,
       data,
       timestamp: new Date().toISOString(),
