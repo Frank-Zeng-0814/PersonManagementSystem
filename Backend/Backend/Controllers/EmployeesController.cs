@@ -116,7 +116,20 @@ public class EmployeesController : ControllerBase
         };
 
         _context.Employees.Add(employee);
-        await _context.SaveChangesAsync();
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            if (ex.InnerException?.Message.Contains("duplicate") == true ||
+                ex.InnerException?.Message.Contains("unique") == true)
+            {
+                return Conflict(new { Message = "An employee with this email already exists" });
+            }
+            return BadRequest(new { Message = $"Failed to save employee: {ex.InnerException?.Message ?? ex.Message}" });
+        }
 
         var result = await _context.Employees
             .Include(e => e.Department)
@@ -183,7 +196,19 @@ public class EmployeesController : ControllerBase
         employee.DepartmentId = dto.DepartmentId;
         employee.PositionId = dto.PositionId;
 
-        await _context.SaveChangesAsync();
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            if (ex.InnerException?.Message.Contains("duplicate") == true ||
+                ex.InnerException?.Message.Contains("unique") == true)
+            {
+                return Conflict(new { Message = "An employee with this email already exists" });
+            }
+            return BadRequest(new { Message = $"Failed to save employee: {ex.InnerException?.Message ?? ex.Message}" });
+        }
 
         var result = await _context.Employees
             .Include(e => e.Department)

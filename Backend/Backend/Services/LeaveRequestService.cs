@@ -162,20 +162,20 @@ public class LeaveRequestService : ILeaveRequestService
         }
 
         // Check for overlapping approved leaves
-        var hasOverlap = await _context.LeaveRequests
+        var overlappingLeave = await _context.LeaveRequests
             .Where(lr => lr.EmployeeId == leaveRequest.EmployeeId
                 && lr.Id != leaveRequestId
                 && lr.Status == LeaveRequestStatus.Approved)
-            .AnyAsync(lr =>
+            .Where(lr =>
                 (leaveRequest.StartDate >= lr.StartDate && leaveRequest.StartDate <= lr.EndDate) ||
                 (leaveRequest.EndDate >= lr.StartDate && leaveRequest.EndDate <= lr.EndDate) ||
-                (leaveRequest.StartDate <= lr.StartDate && leaveRequest.EndDate >= lr.EndDate),
-                cancellationToken);
+                (leaveRequest.StartDate <= lr.StartDate && leaveRequest.EndDate >= lr.EndDate))
+            .FirstOrDefaultAsync(cancellationToken);
 
-        if (hasOverlap)
+        if (overlappingLeave != null)
         {
             throw new DomainException(
-                "Employee already has an approved leave request that overlaps with this date range",
+                $"Leave request overlaps with existing approved leave ({overlappingLeave.StartDate:yyyy-MM-dd} to {overlappingLeave.EndDate:yyyy-MM-dd})",
                 "OVERLAPPING_LEAVE");
         }
 

@@ -44,8 +44,17 @@ public class EmploymentContractService : IEmploymentContractService
 
         if (hasOverlap)
         {
+            var overlappingContract = await _context.EmploymentContracts
+                .Where(c => c.EmployeeId == dto.EmployeeId && c.Status == ContractStatus.Active)
+                .Where(c =>
+                    (dto.StartDate >= c.StartDate && dto.StartDate < (c.EndDate ?? DateTime.MaxValue)) ||
+                    (dto.EndDate.HasValue && dto.EndDate.Value > c.StartDate && dto.EndDate.Value <= (c.EndDate ?? DateTime.MaxValue)) ||
+                    (dto.StartDate <= c.StartDate && (!dto.EndDate.HasValue || dto.EndDate.Value >= (c.EndDate ?? DateTime.MaxValue))))
+                .FirstOrDefaultAsync(cancellationToken);
+
+            var endDateStr = overlappingContract?.EndDate?.ToString("yyyy-MM-dd") ?? "No end date";
             throw new DomainException(
-                "Employee already has an active contract that overlaps with the specified date range",
+                $"Contract overlaps with existing contract (Start: {overlappingContract?.StartDate:yyyy-MM-dd}, End: {endDateStr})",
                 "OVERLAPPING_CONTRACT");
         }
 
