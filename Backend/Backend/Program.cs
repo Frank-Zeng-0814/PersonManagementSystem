@@ -16,7 +16,7 @@ var MyAllowSpecificOrigins = "_myAllowSpecific Origins";
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure port for Railway deployment
-var port = Environment.GetEnvironmentVariable("PORT") ?? "3000";
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 builder.WebHost.UseUrls($"http://*:{port}");
 
 builder.Host.UseSerilog();

@@ -5,7 +5,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 
 const EmployeeList = ({ employees, selectedEmployee, onSelect, onEdit, onDelete, onCreateNew, loading, onAvatarUpdate }) => {
-  const BASE_URL = import.meta.env.VITE_BASE_API_URL || 'http://localhost:3000';
+  const BASE_URL = import.meta.env.VITE_BASE_API_URL || 'http://localhost:8080';
   const [uploadingId, setUploadingId] = useState(null);
 
   const handleAvatarUpload = async (employeeId, file) => {

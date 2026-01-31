@@ -187,12 +187,12 @@ The About page automatically displays the correct Swagger URL based on environme
 
 ```javascript
 // In About.jsx
-const apiUrl = import.meta.env.VITE_BASE_API_URL || 'http://localhost:3000';
+const apiUrl = import.meta.env.VITE_BASE_API_URL || 'http://localhost:8080';
 const swaggerUrl = `${apiUrl}/swagger`;
 ```
 
 **Local Development:**
-- `http://localhost:3000/swagger`
+- `http://localhost:8080/swagger`
 
 **Production (Vercel):**
 - `https://your-app.railway.app/swagger`
@@ -288,7 +288,7 @@ AllowedOrigins=https://your-frontend.vercel.app,http://localhost:5173
 ASPNETCORE_ENVIRONMENT=Production
 
 # Port (Railway auto-sets this)
-PORT=3000
+PORT=8080
 ```
 
 ### Frontend (Vercel)

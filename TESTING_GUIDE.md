@@ -16,12 +16,12 @@
    cd Backend/Backend
    dotnet run
    ```
-   Backend should be running on `http://localhost:3000`
+   Backend should be running on `http://localhost:8080`
 
 ### Frontend Setup
 1. Configure `.env` file in `client/`:
    ```
-   VITE_BASE_API_URL=http://localhost:3000
+   VITE_BASE_API_URL=http://localhost:8080
    ```
 2. Start frontend:
    ```bash
@@ -50,7 +50,7 @@
 
 **Manual Test via Swagger/Postman:**
 ```json
-POST http://localhost:3000/api/departments
+POST http://localhost:8080/api/departments
 Content-Type: application/json
 
 {
@@ -64,7 +64,7 @@ Content-Type: application/json
 **Expected Result:** Update department
 
 ```json
-PUT http://localhost:3000/api/departments/1
+PUT http://localhost:8080/api/departments/1
 Content-Type: application/json
 
 {
@@ -78,7 +78,7 @@ Content-Type: application/json
 **Expected Result:** Delete department
 
 ```
-DELETE http://localhost:3000/api/departments/1
+DELETE http://localhost:8080/api/departments/1
 ```
 **Expected:** Status `204` (No Content)
 
@@ -94,7 +94,7 @@ DELETE http://localhost:3000/api/departments/1
 
 #### ✅ Test: POST /api/positions
 ```json
-POST http://localhost:3000/api/positions
+POST http://localhost:8080/api/positions
 Content-Type: application/json
 
 {
@@ -106,7 +106,7 @@ Content-Type: application/json
 
 #### ✅ Test: PUT /api/positions/{id}
 ```json
-PUT http://localhost:3000/api/positions/1
+PUT http://localhost:8080/api/positions/1
 Content-Type: application/json
 
 {
@@ -118,7 +118,7 @@ Content-Type: application/json
 
 #### ✅ Test: DELETE /api/positions/{id}
 ```
-DELETE http://localhost:3000/api/positions/1
+DELETE http://localhost:8080/api/positions/1
 ```
 **Expected:** Status `204`
 
@@ -606,7 +606,7 @@ All tests passing means:
 ## 🐛 Common Issues & Solutions
 
 ### Issue: SignalR not connecting
-**Solution:** Check backend is running on port 3000, CORS configured correctly
+**Solution:** Check backend is running on port 8080, CORS configured correctly
 
 ### Issue: Avatar upload fails
 **Solution:** Verify Cloudinary credentials in backend `.env`

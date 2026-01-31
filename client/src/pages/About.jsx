@@ -1,7 +1,7 @@
 import { Code, Database, Cloud, Zap, Globe, Sparkles } from 'lucide-react';
 
 const About = () => {
-    const apiUrl = import.meta.env.VITE_BASE_API_URL || 'http://localhost:3000';
+    const apiUrl = import.meta.env.VITE_BASE_API_URL || 'http://localhost:8080';
     const swaggerUrl = `${apiUrl}/swagger`;
 
     const apiEndpoints = [

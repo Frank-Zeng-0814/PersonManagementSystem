@@ -60,7 +60,7 @@ dotnet user-secrets set "AllowedOrigins" "http://localhost:5173"
 dotnet run
 ```
 
-The API will start at `http://localhost:3000` and automatically apply database migrations.
+The API will start at `http://localhost:8080` and automatically apply database migrations.
 
 **Note:** User Secrets are stored in `~/.microsoft/usersecrets/` and never committed to Git.
 
@@ -78,7 +78,7 @@ npm install
 
 3. Create `.env` file:
 ```
-VITE_BASE_API_URL=http://localhost:3000/api
+VITE_BASE_API_URL=http://localhost:8080/api
 ```
 
 4. Start development server:
@@ -97,7 +97,7 @@ The app will be available at `http://localhost:5173`
 - `DELETE /api/people/{id}` - Delete person
 - `POST /api/people/{id}/upload-avatar` - Upload person avatar
 
-Visit `http://localhost:3000/swagger` for interactive API documentation.
+Visit `http://localhost:8080/swagger` for interactive API documentation.
 
 ## Deployment
 
