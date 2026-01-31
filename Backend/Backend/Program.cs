@@ -21,18 +21,17 @@ builder.WebHost.UseUrls($"http://*:{port}");
 
 builder.Host.UseSerilog();
 
-var allowedOrigins = builder.Configuration.GetValue<string>("AllowedOrigins") ?? "http://localhost:5173";
+var allowedOrigins = builder.Configuration
+    .GetSection("AllowedOrigins")
+    .Get<string[]>() ?? Array.Empty<string>();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: MyAllowSpecificOrigins,
-                      policy =>
-                      {
-                          policy.WithOrigins(allowedOrigins.Split(','))
-                          .AllowAnyMethod()
-                          .AllowAnyHeader()
-                          .AllowCredentials(); // Required for SignalR
-                      });
+     options.AddPolicy(MyAllowSpecificOrigins, policy =>
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials());
 });
 
 builder.Services.AddControllers();
@@ -84,8 +83,9 @@ app.UseSwaggerUI();
 app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseSerilogRequestLogging();
 
+app.UseRouting();
 app.UseCors(MyAllowSpecificOrigins);
 app.MapControllers();
-app.MapHub<NotificationsHub>("/hubs/notifications"); // Map SignalR Hub
+app.MapHub<NotificationsHub>("/hubs/notifications").RequireCors(MyAllowSpecificOrigins);
 
 app.Run();
