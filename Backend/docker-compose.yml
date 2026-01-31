@@ -4,9 +4,10 @@ services:
       context: ..
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "8080:8080"
     env_file:
       - ./Backend/.env
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - PORT=8080
     restart: unless-stopped
