@@ -1,0 +1,75 @@
+name: Build and Deploy Backend
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+env:
+  ACR_NAME: hrmfrank1769831574
+  IMAGE_NAME: hrm-api
+  RG: human-resource-management-demo
+  APP_NAME: hrm-api
+  ENV_NAME: hrm-env
+  LOCATION: australiaeast
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Ensure Container Apps extension
+        run: az extension add --name containerapp --upgrade
+
+      - name: Ensure Container Apps environment exists
+        run: |
+          az containerapp env show -n $ENV_NAME -g $RG >/dev/null 2>&1 || \
+          az containerapp env create -n $ENV_NAME -g $RG -l $LOCATION
+
+      - name: Login to ACR
+        run: az acr login --name $ACR_NAME
+
+      - name: Build & Push image (cloud)
+        run: |
+          ACR_LOGIN_SERVER=$(az acr show -n $ACR_NAME --query loginServer -o tsv)
+          TAG=${{ github.sha }}
+          docker build -t $IMAGE_NAME:$TAG -f Dockerfile .
+          docker tag $IMAGE_NAME:$TAG $ACR_LOGIN_SERVER/$IMAGE_NAME:$TAG
+          docker push $ACR_LOGIN_SERVER/$IMAGE_NAME:$TAG
+          echo "ACR_LOGIN_SERVER=$ACR_LOGIN_SERVER" >> $GITHUB_ENV
+          echo "TAG=$TAG" >> $GITHUB_ENV
+
+      - name: Create or Update Container App
+        run: |
+          # If app exists: update. If not: create.
+          az containerapp show -n $APP_NAME -g $RG >/dev/null 2>&1 && EXISTS=1 || EXISTS=0
+
+          if [ "$EXISTS" -eq 1 ]; then
+            az containerapp update -n $APP_NAME -g $RG \
+              --image $ACR_LOGIN_SERVER/$IMAGE_NAME:$TAG
+          else
+            ACR_USER=$(az acr credential show -n $ACR_NAME --query username -o tsv)
+            ACR_PASS=$(az acr credential show -n $ACR_NAME --query "passwords[0].value" -o tsv)
+
+            az containerapp create -n $APP_NAME -g $RG \
+              --environment $ENV_NAME \
+              --image $ACR_LOGIN_SERVER/$IMAGE_NAME:$TAG \
+              --registry-server $ACR_LOGIN_SERVER \
+              --registry-username $ACR_USER \
+              --registry-password $ACR_PASS \
+              --ingress external \
+              --target-port 8080 \
+              --env-vars ASPNETCORE_URLS="http://+:8080"
+          fi
+
+      - name: Output URL
+        run: |
+          FQDN=$(az containerapp show -n $APP_NAME -g $RG --query properties.configuration.ingress.fqdn -o tsv)
+          echo "APP URL: https://$FQDN"
+          echo "Swagger: https://$FQDN/swagger"
