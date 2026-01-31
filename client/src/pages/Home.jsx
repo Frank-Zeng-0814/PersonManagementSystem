@@ -1,37 +1,37 @@
-import { Database, Search, Upload, Shield, FileText, ArrowRight } from 'lucide-react';
+import { Users, FileText, CalendarDays, Bell, Upload, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Home = () => {
     const features = [
         {
-            icon: <Search className="w-8 h-8" />,
-            title: "Advanced Search & Filtering",
-            description: "Search by name with real-time filtering and multi-field sorting capabilities"
-        },
-        {
-            icon: <Database className="w-8 h-8" />,
-            title: "Smart Pagination",
-            description: "Efficient data handling with customizable page sizes and navigation"
-        },
-        {
-            icon: <Upload className="w-8 h-8" />,
-            title: "Cloud Image Upload",
-            description: "Secure avatar uploads with Cloudinary integration and validation"
-        },
-        {
-            icon: <Shield className="w-8 h-8" />,
-            title: "Error Handling & Logging",
-            description: "Production-grade error handling with Serilog structured logging"
+            icon: <Users className="w-8 h-8" />,
+            title: "Employee Management",
+            description: "Manage employee profiles with department, position, and status tracking"
         },
         {
             icon: <FileText className="w-8 h-8" />,
-            title: "API Documentation",
-            description: "Interactive Swagger documentation for all endpoints"
+            title: "Contract Management",
+            description: "Track employment contracts including salary, employment type, and contract periods"
+        },
+        {
+            icon: <CalendarDays className="w-8 h-8" />,
+            title: "Leave Request Workflow",
+            description: "Complete leave approval workflow with status transitions from Draft to Approved"
+        },
+        {
+            icon: <Bell className="w-8 h-8" />,
+            title: "Real-time Notifications",
+            description: "Instant push notifications via SignalR for leave approvals, contract updates, and more"
+        },
+        {
+            icon: <Upload className="w-8 h-8" />,
+            title: "Cloud Avatar Upload",
+            description: "Secure employee avatar uploads with Cloudinary integration and validation"
         }
     ];
 
     const techStack = {
-        backend: [".NET 8", "Entity Framework Core", "PostgreSQL", "Serilog", "Cloudinary"],
+        backend: [".NET 8", "Entity Framework Core", "PostgreSQL", "SignalR", "Serilog", "Cloudinary"],
         frontend: ["React 19", "Tailwind CSS", "React Router", "React Hook Form", "Axios"]
     };
 
@@ -41,16 +41,16 @@ const Home = () => {
 
                 <div className="text-center mb-16">
                     <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-                        Person Management System
+                        Employee Management System
                     </h1>
                     <p className="text-xl text-gray-600 mb-8">
-                        A full-stack CRUD application showcasing modern web development practices
+                        A full-stack HR system for managing employees, contracts, and leave requests with real-time notifications
                     </p>
                     <Link
                         to="/person"
                         className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-200 transform hover:scale-105 shadow-lg"
                     >
-                        Get Started
+                        Enter System
                         <ArrowRight className="ml-2 w-5 h-5" />
                     </Link>
                 </div>

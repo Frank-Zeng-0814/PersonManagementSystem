@@ -1,16 +1,20 @@
-import { Code, Database, Cloud, Zap, Globe, Sparkles } from 'lucide-react';
+import { Code, Database, Cloud, Zap, Globe, Sparkles, Bell } from 'lucide-react';
 
 const About = () => {
     const apiUrl = import.meta.env.VITE_BASE_API_URL || 'http://localhost:8080';
     const swaggerUrl = `${apiUrl}/swagger`;
 
     const apiEndpoints = [
-        { method: "GET", path: "/api/people", description: "Get paginated people with search & filters" },
-        { method: "GET", path: "/api/people/{id}", description: "Get person by ID" },
-        { method: "POST", path: "/api/people", description: "Create new person" },
-        { method: "PUT", path: "/api/people/{id}", description: "Update person" },
-        { method: "DELETE", path: "/api/people/{id}", description: "Delete person" },
-        { method: "POST", path: "/api/people/{id}/upload-avatar", description: "Upload person avatar" }
+        { method: "GET", path: "/api/employees", description: "Get paginated employees with search & filters" },
+        { method: "POST", path: "/api/employees", description: "Create new employee" },
+        { method: "PUT", path: "/api/employees/{id}", description: "Update employee" },
+        { method: "POST", path: "/api/employees/{id}/upload-avatar", description: "Upload employee avatar" },
+        { method: "GET", path: "/api/employees/{id}/contracts", description: "Get contracts for an employee" },
+        { method: "POST", path: "/api/employees/{id}/contracts", description: "Create employment contract" },
+        { method: "GET", path: "/api/employees/{id}/leave-requests", description: "Get leave requests for an employee" },
+        { method: "POST", path: "/api/leave-requests/{id}/submit", description: "Submit leave request for approval" },
+        { method: "POST", path: "/api/leave-requests/{id}/approve", description: "Approve a leave request" },
+        { method: "POST", path: "/api/leave-requests/{id}/reject", description: "Reject a leave request" }
     ];
 
     const architecture = [
@@ -22,17 +26,22 @@ const About = () => {
         {
             icon: <Database className="w-6 h-6" />,
             title: "Entity Framework Core",
-            description: "Code-first approach with auto migrations"
+            description: "Code-first approach with auto migrations and PostgreSQL"
+        },
+        {
+            icon: <Bell className="w-6 h-6" />,
+            title: "Real-time Notifications",
+            description: "SignalR integration for instant push notifications"
         },
         {
             icon: <Cloud className="w-6 h-6" />,
             title: "Cloud Storage",
-            description: "Cloudinary integration for image management"
+            description: "Cloudinary integration for employee avatar management"
         },
         {
             icon: <Zap className="w-6 h-6" />,
-            title: "Performance",
-            description: "LINQ queries with pagination and filtering"
+            title: "Leave Approval Workflow",
+            description: "State machine-based workflow: Draft → Submitted → Approved / Rejected"
         }
     ];
 
@@ -45,7 +54,7 @@ const About = () => {
                         About This Project
                     </h1>
                     <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                        A production-ready full-stack application demonstrating modern web development best practices
+                        A production-ready HR management system built with .NET 8 and React 19
                     </p>
                 </div>
 
@@ -106,10 +115,10 @@ const About = () => {
                         Built with modern technologies and best practices
                     </p>
                     <div className="flex flex-wrap justify-center gap-3 text-sm">
-                        <span className="px-4 py-2 bg-white/20 rounded-full">Clean Code</span>
-                        <span className="px-4 py-2 bg-white/20 rounded-full">Error Handling</span>
-                        <span className="px-4 py-2 bg-white/20 rounded-full">Logging</span>
-                        <span className="px-4 py-2 bg-white/20 rounded-full">Security</span>
+                        <span className="px-4 py-2 bg-white/20 rounded-full">Clean Architecture</span>
+                        <span className="px-4 py-2 bg-white/20 rounded-full">Real-time Notifications</span>
+                        <span className="px-4 py-2 bg-white/20 rounded-full">Workflow Management</span>
+                        <span className="px-4 py-2 bg-white/20 rounded-full">Structured Logging</span>
                     </div>
                 </div>
             </div>

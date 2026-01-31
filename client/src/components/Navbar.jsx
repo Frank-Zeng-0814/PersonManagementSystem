@@ -11,7 +11,7 @@ const Navbar = () => {
                     {/* Brand Logo */}
                     <div className="flex-shrink-0">
                         <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent hover:from-purple-600 hover:to-blue-600 transition-all duration-300 cursor-pointer">
-                            Person MANAGEMENT
+                            HR MANAGEMENT
                         </h1>
                     </div>
 
@@ -48,7 +48,7 @@ const Navbar = () => {
                                     : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
                                     }`}
                             >
-                                Person
+                                Employees
                             </NavLink>
                         </div>
                     </nav>
